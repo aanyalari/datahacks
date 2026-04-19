@@ -11,25 +11,6 @@ An interactive **Streamlit dashboard** for exploring and forecasting conditions 
 - Optional **narrative insights** (works offline; keys only enable the LLM buttons)
 
 Primary reference: **[CCE Mooring Array](https://mooring.ucsd.edu/cce/)**.
-
----
-
-## App screenshots
-
-Add screenshots to make the project instantly understandable on GitHub. Save images into `assets/screenshots/` using these filenames:
-
-- `assets/screenshots/01-home.png` — Mission Control (Home)
-- `assets/screenshots/02-analytics.png` — Analytics page (climatology / FFT / coverage)
-- `assets/screenshots/03-ai.png` — AI Predictions page (forecast / anomalies / soft sensor)
-- `assets/screenshots/04-quality.png` — Data Quality page
-
-Once you add them, they will render here automatically:
-
-![Mission Control](assets/screenshots/01-home.png)
-![Analytics](assets/screenshots/02-analytics.png)
-![AI Predictions](assets/screenshots/03-ai.png)
-![Data Quality](assets/screenshots/04-quality.png)
-
 ---
 
 ## Run locally
@@ -156,15 +137,6 @@ On PowerShell, use a single line or backtick continuation instead of `^` (cmd.ex
 
 ---
 
-## Optional AI narrative buttons
-
-The app runs **fully without** API keys. Keys only unlock narrative / explanation buttons.
-
-- Set `GOOGLE_API_KEY` / `GROQ_API_KEY` as environment variables, or use the sidebar inputs.
-- Never commit `.env` or `.streamlit/secrets.toml` (both are ignored by default).
-
----
-
 ## Project layout (for contributors)
 
 - `Home.py`: Streamlit entry point
@@ -186,21 +158,3 @@ The app runs **fully without** API keys. Keys only unlock narrative / explanatio
 - `scripts/process_mooring_daily.py`: daily summary pipeline utilities
 - `scripts/download_oceansites_by_variable.py`: OceanSITES helper (optional)
 
-Marimo:
-
-```bash
-marimo edit notebooks/cce_explore.py
-```
-
-Sphinx:
-
-```bash
-pip install -r requirements-docs.txt
-sphinx-build -b html docs docs/_build/html
-```
-
----
-
-## License
-
-MIT (hackathon project code), unless your team decides otherwise.
