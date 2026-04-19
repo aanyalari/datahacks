@@ -281,7 +281,7 @@ def numeric_series_cols(df: pd.DataFrame) -> list[str]:
     return [
         c
         for c in df.columns
-        if c not in skip and c != "time" and np.issubdtype(df[c].dtype, np.number)
+        if c not in skip and c != "time" and pd.api.types.is_numeric_dtype(df[c])
     ]
 
 
