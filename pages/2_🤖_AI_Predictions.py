@@ -76,6 +76,17 @@ def _format_value(col: str, val: float) -> str:
     return f"{val:.2f} {unit}".strip() if unit else f"{val:.3f}"
 
 
+def _format_when_utc(ts: object) -> str:
+    """Platform-safe UTC timestamp label (Windows strftime lacks %-d / %-I)."""
+    t = pd.to_datetime(ts, utc=True, errors="coerce")
+    if pd.isna(t):
+        return "Unknown time (UTC)"
+    month = t.strftime("%B")
+    hour = str(int(t.strftime("%I")))  # 1-12, no leading zero
+    ampm = t.strftime("%p")
+    return f"{t.day} {month} {t.year}, {hour} {ampm} UTC"
+
+
 def _magnitude_word(abs_z: float) -> str:
     if abs_z >= 3:
         return "extremely"
@@ -431,7 +442,7 @@ with tab_anom:
                         mag = _magnitude_word(abs(z_best))
                         dir_word = _direction_word(z_best)
                         reason = _reason_for(var_best, z_best)
-                        when = f"{r['time']:%-d %B %Y, %-I %p UTC}"
+                        when = _format_when_utc(r["time"])
                         line = (
                             f"- **{when}** — {_label(var_best)} reached "
                             f"**{_format_value(var_best, val_best)}**, which is **{mag} {dir_word}** than the typical range."
