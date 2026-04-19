@@ -23,7 +23,6 @@ from cce_hack.config import (
     MOORING_SITES,
 )
 from cce_hack.data import load_mooring_from_upload, load_mooring_table, pick_default_csv
-from cce_hack.ingest_raw import PANEL_FILENAME
 from cce_hack.sample_data import ensure_sample_csv
 
 # --- Layout constants (import on pages for consistent chart heights) ---
@@ -163,9 +162,6 @@ def render_global_sidebar() -> pd.DataFrame:
         type=["csv"],
         help="Loads your file for this browser session only. Leave empty to use the default path on disk (all pages read the same table).",
     )
-    st.sidebar.caption(f"**Default on disk:** `{default_path.name}` — leave upload empty to use it.")
-    st.sidebar.caption(f"Pipeline output (when present): `{PANEL_FILENAME}`.")
-
     _theme_label = st.sidebar.radio(
         "Chart colors",
         ("Light (recommended for demos)", "Dark"),
@@ -211,71 +207,6 @@ def render_global_sidebar() -> pd.DataFrame:
     )
 
     df_win = apply_time_window(df)
-
-    # --- Data health (filtered) ---
-    st.sidebar.divider()
-    st.sidebar.subheader("Data health")
-    n = len(df_win)
-    t0 = pd.to_datetime(df_win["time"], utc=True, errors="coerce").min() if n and "time" in df_win.columns else pd.NaT
-    t1 = pd.to_datetime(df_win["time"], utc=True, errors="coerce").max() if n and "time" in df_win.columns else pd.NaT
-    pct6 = pct_rows_all_six_core(df_win)
-    st.sidebar.metric("Rows (window)", f"{n:,}")
-    st.sidebar.metric(
-        "UTC span",
-        f"{str(t0)[:10]} → {str(t1)[:10]}" if pd.notna(t0) and pd.notna(t1) else "—",
-    )
-    st.sidebar.metric(
-        "% rows with all 6 core fields",
-        "—" if pct6 != pct6 else f"{pct6:.1f}%",
-        help="pH, SST, salinity, O₂ (if present), nitrate, chlorophyll (if present) all non-null",
-    )
-
-    with st.sidebar.expander("How to use this app", expanded=False):
-        st.markdown(
-            """
-**Offline (no API key)**
-
-1. Run `streamlit run Home.py`.
-2. Leave CSV upload empty to use the built-in / synthetic file.
-3. **Home** (Mission Control) + **Analytics**, **Data Quality**, **Lab**, and sklearn on **AI Predictions** need **no network**.
-
-**Optional AI (free tiers)**
-
-1. Pick **Gemini** or **Groq** and paste the matching API key (keys are **not** stored in the repo).
-2. **Gemini 1.5 Flash** — [Google AI Studio](https://aistudio.google.com) (free tier; pinned SDK for env compatibility).
-3. **Groq** — [console.groq.com](https://console.groq.com) (very fast responses, good for live demos).
-4. Narrative buttons on **AI Predictions**, **Species Validation**, and **CalCOFI** call the provider **only** when you click.
-            """
-        )
-
-    st.sidebar.divider()
-    st.sidebar.header("AI (optional — free)")
-    opts = ("Gemini (1.5 Flash)", "Groq (Llama 3.1)")
-    lab = st.sidebar.selectbox("LLM provider", opts, index=0, key="llm_provider_label")
-    st.session_state["llm_provider"] = {"Gemini (1.5 Flash)": "gemini", "Groq (Llama 3.1)": "groq"}[lab]
-
-    st.sidebar.text_input(
-        "Gemini API key",
-        type="password",
-        key="gemini_api_key",
-        help="https://aistudio.google.com — also reads GOOGLE_API_KEY / GEMINI_API_KEY env.",
-    )
-    gk = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY") or ""
-    if gk and not st.session_state.get("gemini_api_key"):
-        st.session_state["gemini_api_key"] = gk
-
-    st.sidebar.text_input(
-        "Groq API key",
-        type="password",
-        key="groq_api_key",
-        help="https://console.groq.com — or GROQ_API_KEY env.",
-    )
-    gqk = os.environ.get("GROQ_API_KEY", "")
-    if gqk and not st.session_state.get("groq_api_key"):
-        st.session_state["groq_api_key"] = gqk
-
-    st.sidebar.text_input("Gemini model id", value=os.environ.get("GEMINI_MODEL", DEFAULT_GEMINI_MODEL), key="gemini_model")
-    st.sidebar.text_input("Groq model id", value=os.environ.get("GROQ_MODEL", DEFAULT_GROQ_MODEL), key="groq_model")
 
     return df_win
 

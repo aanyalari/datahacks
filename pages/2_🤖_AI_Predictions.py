@@ -10,7 +10,6 @@ sys.path.insert(0, str(_ROOT / "src"))
 
 import numpy as np
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
@@ -629,16 +628,3 @@ with tab_soft:
             "If the two lines overlap, the other sensors carry enough information to stand in for this one. "
             "If they diverge, this sensor measures something the others can't capture — keep the real reading."
         )
-
-        if not res.importance.empty:
-            with st.expander("Which other sensors helped most?", expanded=False):
-                top = res.importance.head(10).copy()
-                top["feature"] = top["feature"].apply(_label)
-                fig_imp = px.bar(top, x="importance", y="feature", orientation="h")
-                fig_imp.update_layout(
-                    height=min(360, 100 + 24 * len(top)),
-                    yaxis=dict(autorange="reversed"),
-                    xaxis_title="Importance (higher = the model leaned on it more)",
-                    yaxis_title="",
-                )
-                st.plotly_chart(apply_plotly(fig_imp), use_container_width=True)
