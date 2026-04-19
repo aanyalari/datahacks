@@ -4,6 +4,7 @@ ROOT = Path(__file__).resolve().parents[2]
 DATA_RAW = ROOT / "data" / "raw"
 DATA_PROC = ROOT / "data" / "processed"
 SAMPLE_CSV = DATA_PROC / "cce_sample_hourly.csv"
+MOORING_MASTER_FILENAME = "mooring_master.csv"
 
 DEFAULT_MOORING = "CCE2"
 DEFAULT_HORIZON_HOURS = 24
@@ -15,5 +16,7 @@ MOORING_SITES: dict[str, dict[str, float]] = {
     "CCE2": {"latitude": 34.3, "longitude": -120.7},
 }
 
-# Default Anthropic model id (override with env ANTHROPIC_MODEL).
-DEFAULT_CLAUDE_MODEL = "claude-sonnet-4-20250514"
+# Free-tier defaults (override with env GEMINI_MODEL / GROQ_MODEL).
+# 1.5 Flash works with google-generativeai<0.8 (see pyproject pins for langchain/grpc compatibility).
+DEFAULT_GEMINI_MODEL = "gemini-1.5-flash"
+DEFAULT_GROQ_MODEL = "llama-3.1-8b-instant"

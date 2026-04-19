@@ -10,6 +10,7 @@ sys.path.insert(0, str(_ROOT / "src"))
 
 import streamlit as st
 
+from cce_hack.dynamic_insights import insight_mooring_window
 from cce_hack.streamlit_shell import inject_theme_css, page_config, render_global_sidebar
 from cce_hack.ui_advanced import (
     render_acidification_tab,
@@ -25,7 +26,11 @@ inject_theme_css()
 df = render_global_sidebar()
 
 st.title("Analysis lab")
-st.caption("Pick **one** module per run for a smooth demo.")
+st.caption(
+    "**Same CSV as Analytics** — Analytics is the judge-facing story; this page is optional **one-at-a-time** tools "
+    "(coupling, spectra, UMAP, naive extrapolation, etc.). Pick one module so the demo stays fast."
+)
+st.caption(insight_mooring_window(df))
 
 lab_pick = st.selectbox(
     "Module",

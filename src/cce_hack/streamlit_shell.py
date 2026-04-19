@@ -16,7 +16,12 @@ import pandas as pd
 import streamlit as st
 
 from cce_hack.column_pick import pick_best_column
-from cce_hack.config import DEFAULT_CLAUDE_MODEL, DEFAULT_MOORING, MOORING_SITES
+from cce_hack.config import (
+    DEFAULT_GEMINI_MODEL,
+    DEFAULT_GROQ_MODEL,
+    DEFAULT_MOORING,
+    MOORING_SITES,
+)
 from cce_hack.data import load_mooring_from_upload, load_mooring_table, pick_default_csv
 from cce_hack.ingest_raw import PANEL_FILENAME
 from cce_hack.sample_data import ensure_sample_csv
@@ -70,9 +75,9 @@ def inject_theme_css() -> None:
     margin: 0.2rem 0.35rem 0.2rem 0;
     line-height: 1.25;
   }}
-  .status-red {{ background: rgba(220, 70, 70, 0.22); color: #ffb4b4; border: 1px solid rgba(255,120,120,0.45); }}
-  .status-amber {{ background: rgba(230, 170, 40, 0.18); color: #ffe6a8; border: 1px solid rgba(255,200,100,0.4); }}
-  .status-green {{ background: rgba(40, 180, 120, 0.18); color: #b8ffd9; border: 1px solid rgba(100,220,160,0.35); }}
+  .status-red {{ background: rgba(220, 70, 70, 0.14); color: #7f1d1d; border: 1px solid rgba(180,60,60,0.35); }}
+  .status-amber {{ background: rgba(230, 170, 40, 0.16); color: #713f12; border: 1px solid rgba(200,150,40,0.35); }}
+  .status-green {{ background: rgba(40, 180, 120, 0.14); color: #14532d; border: 1px solid rgba(60,160,100,0.35); }}
   .alert-strip {{ margin: 0.5rem 0 0.75rem 0; }}
 </style>
         """,
@@ -134,7 +139,7 @@ def apply_time_window(df: pd.DataFrame) -> pd.DataFrame:
 
 def render_global_sidebar() -> pd.DataFrame:
     """
-    Sidebar: data health, time window, CSV upload, mooring, Anthropic, help expander.
+    Sidebar: data health, time window, CSV upload, mooring, optional Gemini/Groq keys, help expander.
     Returns dataframe **after** time-window filter.
     """
     default_path = pick_default_csv()
@@ -145,11 +150,26 @@ def render_global_sidebar() -> pd.DataFrame:
         # Default "all": merged mooring panels often have sensors active in different years;
         # a short trailing window can leave every column NaN (empty KPIs / plots).
         st.session_state.cce_time_window = "all"
+    if "cce_chart_theme" not in st.session_state:
+        st.session_state.cce_chart_theme = "light"
 
     st.sidebar.header("Data")
-    up = st.sidebar.file_uploader("Upload mooring CSV (optional)", type=["csv"])
-    st.sidebar.caption(f"Default file: `{default_path.name}`")
-    st.sidebar.caption(f"Raw → processed: `{PANEL_FILENAME}` when present.")
+    up = st.sidebar.file_uploader(
+        "Replace mooring CSV (optional)",
+        type=["csv"],
+        help="Loads your file for this browser session only. Leave empty to use the default path on disk (all pages read the same table).",
+    )
+    st.sidebar.caption(f"**Default on disk:** `{default_path.name}` — leave upload empty to use it.")
+    st.sidebar.caption(f"Pipeline output (when present): `{PANEL_FILENAME}`.")
+
+    _theme_label = st.sidebar.radio(
+        "Chart colors",
+        ("Light (recommended for demos)", "Dark"),
+        index=0 if st.session_state.get("cce_chart_theme", "light") == "light" else 1,
+        horizontal=True,
+        help="Plotly template for every chart. Light mode improves contrast on printed slides and Streamlit light UI.",
+    )
+    st.session_state.cce_chart_theme = "light" if _theme_label.startswith("Light") else "dark"
 
     if up is not None:
         try:
@@ -211,33 +231,47 @@ def render_global_sidebar() -> pd.DataFrame:
             """
 **Offline (no API key)**
 
-1. Run `streamlit run streamlit_app.py`.
+1. Run `streamlit run Home.py`.
 2. Leave CSV upload empty to use the built-in / synthetic file.
-3. **Mission Control** (Home) + **Analytics**, **Data Quality**, **Lab**, and sklearn on **AI Predictions** need **no network**.
+3. **Home** (Mission Control) + **Analytics**, **Data Quality**, **Lab**, and sklearn on **AI Predictions** need **no network**.
 
-**Optional Claude**
+**Optional AI (free tiers)**
 
-1. Paste `ANTHROPIC_API_KEY` below (or set env var before launch).
-2. Open **AI Predictions** — Claude runs **only** when you click a Claude button.
+1. Pick **Gemini** or **Groq** and paste the matching API key (keys are **not** stored in the repo).
+2. **Gemini 1.5 Flash** — [Google AI Studio](https://aistudio.google.com) (free tier; pinned SDK for env compatibility).
+3. **Groq** — [console.groq.com](https://console.groq.com) (very fast responses, good for live demos).
+4. Narrative buttons on **AI Predictions**, **Species Validation**, and **CalCOFI** call the provider **only** when you click.
             """
         )
 
     st.sidebar.divider()
-    st.sidebar.header("Claude (optional)")
+    st.sidebar.header("AI (optional — free)")
+    opts = ("Gemini (1.5 Flash)", "Groq (Llama 3.1)")
+    lab = st.sidebar.selectbox("LLM provider", opts, index=0, key="llm_provider_label")
+    st.session_state["llm_provider"] = {"Gemini (1.5 Flash)": "gemini", "Groq (Llama 3.1)": "groq"}[lab]
+
     st.sidebar.text_input(
-        "ANTHROPIC_API_KEY",
+        "Gemini API key",
         type="password",
-        key="anthropic_api_key",
-        help="Optional — only for AI Predictions buttons.",
+        key="gemini_api_key",
+        help="https://aistudio.google.com — also reads GOOGLE_API_KEY / GEMINI_API_KEY env.",
     )
-    env_key = os.environ.get("ANTHROPIC_API_KEY", "")
-    if env_key and not st.session_state.get("anthropic_api_key"):
-        st.session_state["anthropic_api_key"] = env_key
+    gk = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY") or ""
+    if gk and not st.session_state.get("gemini_api_key"):
+        st.session_state["gemini_api_key"] = gk
+
     st.sidebar.text_input(
-        "Model id",
-        value=os.environ.get("ANTHROPIC_MODEL", DEFAULT_CLAUDE_MODEL),
-        key="anthropic_model",
+        "Groq API key",
+        type="password",
+        key="groq_api_key",
+        help="https://console.groq.com — or GROQ_API_KEY env.",
     )
+    gqk = os.environ.get("GROQ_API_KEY", "")
+    if gqk and not st.session_state.get("groq_api_key"):
+        st.session_state["groq_api_key"] = gqk
+
+    st.sidebar.text_input("Gemini model id", value=os.environ.get("GEMINI_MODEL", DEFAULT_GEMINI_MODEL), key="gemini_model")
+    st.sidebar.text_input("Groq model id", value=os.environ.get("GROQ_MODEL", DEFAULT_GROQ_MODEL), key="groq_model")
 
     return df_win
 
@@ -251,12 +285,28 @@ def numeric_series_cols(df: pd.DataFrame) -> list[str]:
     ]
 
 
-def effective_anthropic_key() -> str:
-    return (st.session_state.get("anthropic_api_key") or os.environ.get("ANTHROPIC_API_KEY") or "").strip()
+def effective_llm_provider() -> str:
+    v = (st.session_state.get("llm_provider") or os.environ.get("CCE_LLM_PROVIDER") or "gemini").strip().lower()
+    return v if v in ("gemini", "groq") else "gemini"
 
 
-def effective_anthropic_model() -> str:
-    return (st.session_state.get("anthropic_model") or os.environ.get("ANTHROPIC_MODEL") or DEFAULT_CLAUDE_MODEL).strip()
+def effective_llm_api_key() -> str:
+    p = effective_llm_provider()
+    if p == "gemini":
+        return (
+            st.session_state.get("gemini_api_key")
+            or os.environ.get("GOOGLE_API_KEY")
+            or os.environ.get("GEMINI_API_KEY")
+            or ""
+        ).strip()
+    return (st.session_state.get("groq_api_key") or os.environ.get("GROQ_API_KEY") or "").strip()
+
+
+def effective_llm_model() -> str:
+    p = effective_llm_provider()
+    if p == "gemini":
+        return (st.session_state.get("gemini_model") or os.environ.get("GEMINI_MODEL") or DEFAULT_GEMINI_MODEL).strip()
+    return (st.session_state.get("groq_model") or os.environ.get("GROQ_MODEL") or DEFAULT_GROQ_MODEL).strip()
 
 
 _SENSOR_LABELS: dict[str, str] = {

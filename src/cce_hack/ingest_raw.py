@@ -83,12 +83,13 @@ def load_temperature_salinity_csv(path: Path) -> pd.DataFrame:
 
 
 def load_ph_csv(path: Path) -> pd.DataFrame:
+    """CCE1 pH is ~40 m; CCE2 catalog uses ~15 m (``P_PH-15m``). Keep both."""
     df = pd.read_csv(path)
     df["time"] = _parse_time(df["TIME"])
     df = df.dropna(subset=["time"])
     df["mooring_id"] = df["station"].astype(str)
     df["depth_m"] = pd.to_numeric(df["DEPTH"], errors="coerce")
-    df = df[np.isclose(df["depth_m"], 40.0)].copy()
+    df = df[np.isclose(df["depth_m"], 40.0) | np.isclose(df["depth_m"], 15.0)].copy()
     out = df.rename(columns={"PH_TOT": "ph_total"})
     return out[["time", "mooring_id", "ph_total"]]
 
@@ -131,6 +132,36 @@ def load_chlorophyll_csv(path: Path) -> pd.DataFrame:
     return merged
 
 
+def load_oxygen_csv(path: Path) -> pd.DataFrame:
+    """Dissolved oxygen from OceanSITES ``oxygen_combined.csv`` (variable name varies: DOX2, DOXY, …)."""
+    df = pd.read_csv(path)
+    df["time"] = _parse_time(df["TIME"])
+    df = df.dropna(subset=["time"])
+    df["mooring_id"] = df["station"].astype(str)
+    val_col: str | None = None
+    for c in df.columns:
+        if str(c).upper() == "TIME" or c == "station":
+            continue
+        cu = str(c).upper()
+        if cu.endswith("_QC") or cu == "QC":
+            continue
+        if any(k in cu for k in ("DOX2", "DOXY", "DOX", "OXY")):
+            val_col = c
+            break
+    if val_col is None:
+        return pd.DataFrame(columns=["time", "mooring_id", "oxygen"])
+    df["depth_m"] = pd.to_numeric(df.get("DEPTH"), errors="coerce")
+    df["oxygen"] = pd.to_numeric(df[val_col], errors="coerce")
+    # Prefer ~40 m (CCE1 style); include ~0 m surface / instrument nominal depth for CCE2
+    if df["depth_m"].notna().any():
+        sub = df[np.isclose(df["depth_m"], 40.0) | np.isclose(df["depth_m"], 0.0) | np.isclose(df["depth_m"], 15.0)]
+        if sub.empty:
+            sub = df
+        df = sub
+    out = df[["time", "mooring_id", "oxygen"]].copy()
+    return out
+
+
 def discover_combined_csvs(raw_dir: Path | None = None) -> dict[str, Path]:
     raw_dir = raw_dir or DATA_RAW
     out: dict[str, Path] = {}
@@ -139,6 +170,7 @@ def discover_combined_csvs(raw_dir: Path | None = None) -> dict[str, Path]:
         "ph": raw_dir / "ph" / "ph_combined.csv",
         "nitrate": raw_dir / "nitrate" / "nitrate_combined.csv",
         "chlorophyll": raw_dir / "chlorophyll" / "chlorophyll_combined.csv",
+        "oxygen": raw_dir / "oxygen" / "oxygen_combined.csv",
     }
     for key, p in mapping.items():
         if p.exists():
@@ -168,10 +200,15 @@ def build_hourly_panel(raw_dir: Path | None = None) -> pd.DataFrame:
         vcols = [x for x in c.columns if x not in ("mooring_id", "time")]
         if vcols:
             frames.append(c[["mooring_id", "time"] + vcols])
+    if "oxygen" in paths:
+        oxy = load_oxygen_csv(paths["oxygen"])
+        if not oxy.empty and "oxygen" in oxy.columns:
+            frames.append(_hourly_mean(oxy, ["oxygen"]))
 
     if not frames:
         raise FileNotFoundError(
-            f"No CCE combined CSVs found under {raw_dir}. Expected subfolders nitrate/, chlorophyll/, ph/, temperature_salinity/."
+            f"No CCE combined CSVs found under {raw_dir}. Expected subfolders "
+            "nitrate/, chlorophyll/, ph/, temperature_salinity/ (and optional oxygen/)."
         )
 
     merged = frames[0]

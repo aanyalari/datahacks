@@ -33,7 +33,7 @@ def _(mo):
 
     Reactive notebook for **Data Analytics**: coverage, gaps, simple seasonality checks.
 
-    **Dataset:** [CCE mooring array](https://mooring.ucsd.edu/cce/) (Scripps / SIO collaborators). Uses the same CSV loader as `streamlit_app.py`.
+    **Dataset:** [CCE mooring array](https://mooring.ucsd.edu/cce/) (Scripps / SIO collaborators). Uses the same CSV loader as `Home.py`.
     """)
     return
 

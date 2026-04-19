@@ -7,7 +7,7 @@ import pandas as pd
 import plotly.graph_objects as go
 
 from cce_hack.agent_tools import build_context_package
-from cce_hack.plot_theme import PLOTLY_BASE, apply_plotly
+from cce_hack.plot_theme import apply_plotly, plotly_theme_kwargs
 from cce_hack.streamlit_shell import CHART_H_FULL, friendly_column_label_plain
 
 
@@ -53,7 +53,7 @@ def coverage_heatmap_figure(mat: pd.DataFrame) -> go.Figure:
         xaxis_title="Sensor / column",
         yaxis_title="Month (UTC)",
         height=CHART_H_FULL,
-        **{k: v for k, v in PLOTLY_BASE.items() if k != "margin"},
+        **{k: v for k, v in plotly_theme_kwargs().items() if k != "margin"},
     )
     return apply_plotly(fig)
 

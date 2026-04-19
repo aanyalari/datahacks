@@ -7,7 +7,17 @@ import pandas as pd
 # Preference order: surface / canonical names first, then common depth suffixes.
 _ROLE_CANDIDATES: dict[str, tuple[str, ...]] = {
     "ph": ("ph_total", "pH_total", "ph", "pH", "ph_insitu"),
-    "sst": ("sst_c", "temperature_c", "temp_c", "t_c", "sst_c_d32m", "sst_c_d38m", "sst_c_d39m", "sst_c_d40m"),
+    "sst": (
+        "sst_c",
+        "temperature_c",
+        "temp_c",
+        "temperature",
+        "t_c",
+        "sst_c_d32m",
+        "sst_c_d38m",
+        "sst_c_d39m",
+        "sst_c_d40m",
+    ),
     "salinity": (
         "salinity_psu",
         "salinity",
@@ -49,6 +59,11 @@ def friendly_axis_label(col: str | None) -> str:
         "wind_speed_ms": "Wind speed (m/s)",
         "conductivity_s_m": "Conductivity (S/m)",
         "pco2_uatm": "pCO₂ (µatm)",
+        "dissolved_oxygen_mg_l": "Dissolved oxygen (mg/L)",
+        "do_mg_l": "Dissolved oxygen (mg/L)",
+        "oxygen_mg_l": "Dissolved oxygen (mg/L)",
+        "o2_mg_l": "Dissolved oxygen (mg/L)",
+        "oxygen": "Dissolved oxygen",
     }
     if col in m:
         return m[col]

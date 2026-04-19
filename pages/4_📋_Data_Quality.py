@@ -31,6 +31,10 @@ mat, _months = monthly_coverage_matrix(df, num_cols)
 if mat is not None:
     st.subheader("Coverage heatmap (% filled per month)")
     st.plotly_chart(coverage_heatmap_figure(mat), use_container_width=True)
+    st.caption(
+        f"**{len(num_cols)}** numeric columns × months — pale vertical stripes mean “little data that month”; "
+        "cross-check those months before trusting **Home** or **AI** spikes."
+    )
 else:
     st.info("Not enough numeric columns / time for a monthly heatmap.")
 

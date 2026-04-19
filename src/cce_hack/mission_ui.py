@@ -9,7 +9,7 @@ import streamlit as st
 
 from cce_hack.column_pick import friendly_axis_label, pick_best_column
 from cce_hack.mission_alerts import pick_chl_column, pick_o2_column
-from cce_hack.plot_theme import PLOTLY_BASE, apply_plotly
+from cce_hack.plot_theme import apply_plotly
 from cce_hack.streamlit_shell import mooring_site_map_df
 
 CHART_H_FULL = 380
@@ -215,9 +215,8 @@ def normalized_six_series_figure(df: pd.DataFrame, *, max_days: int = 90) -> go.
     fig.update_layout(
         height=CHART_H_FULL,
         title="Core variables (min–max normalized to 0–1) — recent window",
-        yaxis_title="normalized",
+        yaxis_title="normalized (0 = window min, 1 = window max)",
         xaxis_title="time (UTC)",
         legend=dict(orientation="h", y=1.08),
-        **{k: v for k, v in PLOTLY_BASE.items() if k != "margin"},
     )
     return apply_plotly(fig)

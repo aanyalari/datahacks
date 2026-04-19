@@ -7,6 +7,8 @@ import pandas as pd
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 
+from cce_hack.column_pick import friendly_axis_label
+
 
 def isolation_forest_anomalies(
     df: pd.DataFrame,
@@ -95,13 +97,15 @@ def build_anomaly_rank_table(
         elif val_fill == val_fill:
             raw_val = val_fill
         sev = "🔴" if abs(zbest) >= 3 else ("🟡" if abs(zbest) >= 2 else "🟢")
+        nice = friendly_axis_label(vbest)
         rows_out.append(
             {
-                "Date": str(pd.Timestamp(t))[:19],
-                "Variable": vbest,
-                "Value": round(raw_val, 5) if raw_val == raw_val else None,
-                "Z-score": round(zbest, 2),
-                "Severity": sev,
+                "When (UTC)": str(pd.Timestamp(t))[:19],
+                "Sensor (what moved most)": nice,
+                "Value at that time": round(raw_val, 5) if raw_val == raw_val else None,
+                "Z vs whole mooring file": round(zbest, 2),
+                "How unusual": sev,
+                "_col": vbest,
             }
         )
     return pd.DataFrame(rows_out)

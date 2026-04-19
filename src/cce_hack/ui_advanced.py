@@ -10,6 +10,7 @@ from plotly.subplots import make_subplots
 import streamlit as st
 
 from cce_hack.acidification_co2sys import omega_profile_isochemical, ph_variability_index, run_co2sys_on_dataframe
+from cce_hack.column_pick import pick_best_column
 from cce_hack.cross_column import (
     granger_matrix,
     lagged_cross_correlation,
@@ -19,7 +20,7 @@ from cce_hack.cross_column import (
 )
 from cce_hack.dimred_cluster import run_hdbscan, run_kmeans, run_pca_biplot, run_umap_2d
 from cce_hack.ml_extras import arima_daily_forecast, lstm_sequence_forecast, random_forest_with_shap, regime_classifier
-from cce_hack.plot_theme import PLOTLY_BASE, apply_plotly
+from cce_hack.plot_theme import apply_plotly, plotly_theme_kwargs
 from cce_hack.temporal_ops import anomaly_flags, rolling_stats, stl_decompose_daily
 from cce_hack.viz_extras import hovmoller_sst_depth_time, normalize_rows_01, pairplot_frame, seasonal_radar_frame
 from cce_hack.wavelet_ops import morlet_coherence
@@ -53,7 +54,7 @@ def render_temporal_tab(df: pd.DataFrame) -> None:
             fig = make_subplots(specs=[[{"secondary_y": True}]])
             fig.add_trace(go.Scatter(x=rw["time"], y=rw["mean"], name="mean"), secondary_y=False)
             fig.add_trace(go.Scatter(x=rw["time"], y=rw["std"], name="std", line=dict(dash="dot")), secondary_y=True)
-            fig.update_layout(title=f"Rolling {wsel}", height=380, **{k: v for k, v in PLOTLY_BASE.items() if k != "margin"})
+            fig.update_layout(title=f"Rolling {wsel}", height=380, **{k: v for k, v in plotly_theme_kwargs().items() if k != "margin"})
             st.plotly_chart(apply_plotly(fig), use_container_width=True)
         else:
             st.info("Rolling statistics unavailable for this column.")
@@ -105,24 +106,37 @@ def render_acidification_tab(df: pd.DataFrame) -> None:
         )
 
     st.subheader("Isochemical Ω profile vs pressure (illustrative horizon)")
-    if {"salinity_psu", "sst_c", "ph_total"}.issubset(df.columns):
-        row = df.dropna(subset=["salinity_psu", "sst_c", "ph_total"]).sort_values("time").iloc[len(df) // 2]
-        prof = omega_profile_isochemical(
-            float(row["salinity_psu"]),
-            float(row["sst_c"]),
-            ta,
-            float(row["ph_total"]),
-            surface_pressure_dbar=p_dbar,
-        )
-        if prof is not None:
-            hz = prof.attrs.get("horizon_depth_m", float("nan"))
-            st.caption(f"Example mid-record water parcel: shallowest Ω_ar<1 near **{hz:.1f} m** (hydrostatic P/1.02).")
-            st.plotly_chart(
-                apply_plotly(
-                    px.line(prof, x="depth_m_approx", y="saturation_aragonite", title="Ω aragonite vs depth")
-                ).update_layout(height=380),
-                use_container_width=True,
+    ph_c = pick_best_column(df, "ph")
+    t_c = pick_best_column(df, "sst")
+    s_c = pick_best_column(df, "salinity")
+    if ph_c and t_c and s_c and "time" in df.columns:
+        parcel = df[["time", ph_c, t_c, s_c]].dropna().sort_values("time")
+        if len(parcel) == 0:
+            st.caption("No co-located pH + temperature + salinity rows for an illustrative depth profile.")
+        else:
+            mid = len(parcel) // 2
+            row = parcel.iloc[mid]
+            prof = omega_profile_isochemical(
+                float(row[s_c]),
+                float(row[t_c]),
+                ta,
+                float(row[ph_c]),
+                surface_pressure_dbar=p_dbar,
             )
+            if prof is not None:
+                hz = prof.attrs.get("horizon_depth_m", float("nan"))
+                st.caption(
+                    f"One **mid-record** water parcel (row {mid + 1:,} of {len(parcel):,} co-located samples): "
+                    f"shallowest depth where Ω_aragonite drops **below 1** ≈ **{hz:.1f} m** (hydrostatic P/1.02 dbar·m⁻¹)."
+                )
+                st.plotly_chart(
+                    apply_plotly(
+                        px.line(prof, x="depth_m_approx", y="saturation_aragonite", title="Ω aragonite vs depth")
+                    ).update_layout(height=380),
+                    use_container_width=True,
+                )
+    else:
+        st.caption("Need overlapping **pH**, **temperature**, and **salinity** columns for the illustrative Ω vs depth curve.")
 
 
 def render_cross_tab(df: pd.DataFrame) -> None:
@@ -190,7 +204,7 @@ def render_cross_tab(df: pd.DataFrame) -> None:
     if per is not None:
         st.plotly_chart(
             apply_plotly(go.Figure(go.Scatter(x=per, y=coh, mode="lines"))).update_layout(
-                title="Scale-averaged wavelet coherence", xaxis_title="Period (h)", height=360, **PLOTLY_BASE
+                title="Scale-averaged wavelet coherence", xaxis_title="Period (h)", height=360, **plotly_theme_kwargs()
             ),
             use_container_width=True,
         )

@@ -2,7 +2,7 @@
 
 Primary dataset: **[California Current Ecosystem (CCE) Mooring Array](https://mooring.ucsd.edu/cce/)** (Scripps / SIO collaborators). This repo includes:
 
-- **Streamlit** judge demo (`streamlit_app.py`)
+- **Streamlit** judge demo (`Home.py` — shows as **Home** in the sidebar)
 - **Marimo** reactive EDA (`notebooks/cce_explore.py`)
 - **Sphinx** methodology + API docs (`docs/`)
 - A small **Python package** (`src/cce_hack/`) for loading, feature construction, and forecasting
@@ -54,15 +54,15 @@ That writes a small merged-style CSV under `data/raw/` (gitignored except placeh
 ### 4. Start the app
 
 ```bash
-streamlit run streamlit_app.py
+streamlit run Home.py
 ```
 
-Your browser should open to **Mission Control** (home). Other tabs live under **Analytics**, **AI Predictions**, **Analysis Lab**, and **Data Quality** in the Streamlit sidebar.
+Your browser should open to **Home** (Mission Control). Other pages are listed under **Analytics**, **AI Predictions**, **Analysis Lab**, and **Data Quality** in the Streamlit sidebar.
 
 ### Tips
 
 - **Time window:** If charts or KPIs look empty, set the sidebar time range to **All data** (or widen the window). Merged moorings often have sparse columns or non-overlapping sensors.
-- **Optional Claude features:** For AI narrative helpers, add an [Anthropic](https://www.anthropic.com/) API key in the sidebar **or** set `ANTHROPIC_API_KEY` in your environment. The rest of the app works **offline** without it.
+- **Optional AI (free):** For narrative buttons, add a [Google AI Studio](https://aistudio.google.com) (Gemini) or [Groq](https://console.groq.com) API key in the sidebar, or set `GOOGLE_API_KEY` / `GROQ_API_KEY`. The rest of the app works **offline** without keys.
 - **Your own data:** Upload a CSV in the sidebar, or place a merged `*.csv` in `data/raw/` (see “Real CCE data” below).
 
 ### Troubleshooting
@@ -104,7 +104,7 @@ python -m venv .venv
 pip install -U pip
 pip install -e .
 python scripts/generate_sample_data.py
-streamlit run streamlit_app.py
+streamlit run Home.py
 ```
 
 Marimo:

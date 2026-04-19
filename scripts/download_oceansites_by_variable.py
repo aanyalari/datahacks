@@ -1,10 +1,18 @@
 """
 Download OceanSITES CCE1/CCE2 NetCDF via OPeNDAP (dodsC), flatten to CSV per variable group.
 
+**CCE2 temperature/salinity** uses every MICROCAT part (PART1–PART4 for deployments 02–04) **plus**
+``OS_CCE2_*_D_CTD.nc`` (deployments 07–17) so CCE2 keeps T/S through recent years (MICROCAT alone ends ~2014).
+
 Requires: pip install xarray netCDF4
 
-Run from repo root:
+Run from repo root (**one command = all variables**, both moorings):
+
   python scripts/download_oceansites_by_variable.py
+
+Optional (subset / one station):
+
+  python scripts/download_oceansites_by_variable.py --variables temperature_salinity --stations cce2
   python scripts/download_oceansites_by_variable.py --variables ph --stations cce1
 """
 
@@ -175,7 +183,10 @@ def main() -> None:
     p.add_argument(
         "--variables",
         default="all",
-        help="Comma-separated keys from datasets, or 'all' (default: all).",
+        help=(
+            "Comma-separated keys: ph, temperature_salinity, nitrate, chlorophyll, oxygen — "
+            "or 'all' (default) to download **every** group for the selected stations."
+        ),
     )
     p.add_argument(
         "--stations",
