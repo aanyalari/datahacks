@@ -1,0 +1,11 @@
+# Cohesive UI defaults for the CCE Mooring Lab (friends can override in the app menu).
+[theme]
+base = "light"
+primaryColor = "#0064B4"
+backgroundColor = "#f8fafc"
+secondaryBackgroundColor = "#ffffff"
+textColor = "#1b2838"
+font = "sans-serif"
+
+[browser]
+gatherUsageStats = false

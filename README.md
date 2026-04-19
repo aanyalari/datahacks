@@ -14,9 +14,12 @@ Primary dataset: **[California Current Ecosystem (CCE) Mooring Array](https://mo
 ### 1. Clone and open a terminal in the repo folder
 
 ```bash
-git clone <YOUR_REPO_URL>
+git clone https://github.com/aanyalari/datahacks.git
 cd datahacks
+git checkout feature/cce-mooring-streamlit
 ```
+
+The **Streamlit Mission Control** app and package live on branch `feature/cce-mooring-streamlit`. Older experiment files may remain on `main`.
 
 ### 2. Create a virtual environment and install
 
@@ -76,18 +79,18 @@ Your browser should open to **Mission Control** (home). Other tabs live under **
 ## Maintainer — push this project to GitHub
 
 1. On GitHub: **New repository** → choose a name (e.g. `datahacks`) → **do not** add a README/license if you already have them locally → Create.
-2. In the project folder (first time only):
+2. In the project folder (first time only), or to add a feature branch:
 
 ```bash
 git init
 git add .
 git commit -m "Initial commit: CCE Mooring Streamlit lab"
-git branch -M main
-git remote add origin https://github.com/<YOUR_USERNAME>/<YOUR_REPO>.git
-git push -u origin main
+git remote add origin https://github.com/aanyalari/datahacks.git
+git checkout -b feature/cce-mooring-streamlit
+git push -u origin feature/cce-mooring-streamlit
 ```
 
-Replace the URL with your real repo. If GitHub shows SSH instructions, use `git@github.com:USER/REPO.git` instead.
+Use SSH if you prefer: `git@github.com:aanyalari/datahacks.git`. To open a **pull request** into `main`, use GitHub’s “Compare & pull request” after the push.
 
 **Never push:** `.venv/`, `.streamlit/secrets.toml`, `.env`, or large raw datasets under `data/raw/` (they are gitignored by default).
 

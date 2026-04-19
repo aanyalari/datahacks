@@ -39,14 +39,28 @@ def inject_theme_css() -> None:
   div[data-testid="stMetricValue"] {{ font-size: 1.35rem; font-weight: 600; }}
   div[data-testid="stMetricDelta"] {{ font-size: 0.75rem; }}
   .hero {{
-    padding: 0.95rem 1.1rem;
-    border-radius: 10px;
-    background: rgba(0, 100, 180, 0.08);
+    padding: 1rem 1.15rem;
+    border-radius: 12px;
+    background: linear-gradient(120deg, rgba(0, 100, 180, 0.12) 0%, rgba(0, 100, 180, 0.04) 100%);
+    border: 1px solid rgba(0, 100, 180, 0.2);
     border-left: 4px solid #0064B4;
-    margin-bottom: 0.65rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   }}
-  .hero h1 {{ margin: 0 0 0.35rem 0; font-size: 1.5rem; letter-spacing: -0.02em; color: #e8f2ff; }}
-  .hero p {{ margin: 0; line-height: 1.45; opacity: 0.95; }}
+  .hero h1 {{
+    margin: 0 0 0.4rem 0;
+    font-size: 1.55rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #023047;
+    line-height: 1.2;
+  }}
+  .hero p {{
+    margin: 0;
+    line-height: 1.5;
+    color: #1b2838;
+    font-size: 0.98rem;
+  }}
   .status-badge {{
     display: inline-block;
     padding: 0.28rem 0.65rem;
