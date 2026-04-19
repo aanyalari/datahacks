@@ -109,3 +109,26 @@ def build_anomaly_rank_table(
             }
         )
     return pd.DataFrame(rows_out)
+
+
+def feature_z_scores_at_row(
+    row: pd.Series,
+    feature_cols: list[str],
+    mu: pd.Series,
+    sig: pd.Series,
+) -> pd.DataFrame:
+    """Per-feature z-scores for one row (interpretability for Isolation Forest hits)."""
+    rows = []
+    for c in feature_cols:
+        if c not in row.index or pd.isna(row[c]):
+            continue
+        m, s = float(mu.get(c, np.nan)), float(sig.get(c, np.nan))
+        if np.isnan(m) or np.isnan(s) or s == 0:
+            continue
+        z = (float(row[c]) - m) / s
+        rows.append({"feature": c, "z": z, "value": float(row[c])})
+    if not rows:
+        return pd.DataFrame()
+    zf = pd.DataFrame(rows)
+    zf["_az"] = zf["z"].abs()
+    return zf.sort_values("_az", ascending=False).drop(columns=["_az"]).reset_index(drop=True)
