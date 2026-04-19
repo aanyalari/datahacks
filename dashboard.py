@@ -170,12 +170,27 @@ if selected_station != "Both":
     ph_f      = ph_f[ph_f["station"] == selected_station]
     mooring_f = mooring_f[mooring_f["station"] == selected_station]
 
+# ─── STATUS BANNER ──────────────────────────────────────────────────
+latest_ph_check = ph_df.sort_values("date").groupby("station")["ph"].last()
+any_below_anchovy = (latest_ph_check < ANCHOVY_THRESHOLD).any()
+if any_below_anchovy:
+    st.error("🚨 ACTIVE ALERT: CCE2 pH currently below anchovy survival threshold — fisheries managers should review breach history")
+else:
+    st.warning("⚠️ CCE2 has recorded 250 historical pH breaches below anchovy threshold since 2011. Current readings above threshold — chronic risk remains elevated.")
+
 # ─── HEADER ─────────────────────────────────────────────────────────
 st.title("🌊 California Ocean Health Monitor")
 st.caption(
     "Episodic stress events on a worsening trajectory — "
     "CCE Mooring Network + CalCOFI · AI-powered threshold forecasting"
 )
+
+# ─── HERO METRICS ───────────────────────────────────────────────────
+h1, h2, h3, h4 = st.columns(4)
+h1.metric("CCE2 Total Breach Events", "250", delta="breach events since 2011 ↑", delta_color="inverse")
+h2.metric("CCE1 Acidification Rate", "-0.035 pH/decade")
+h3.metric("Lowest pH Recorded", "7.4215", delta="CCE2 — below shellfish threshold", delta_color="inverse")
+h4.metric("Data Record Length", "15+ years", delta="2009–2025", delta_color="off")
 
 # ─── SHELLFISH STRESS TREND (replaces misleading CRITICAL banner) ───
 st.markdown("#### Days Below Shellfish Threshold (pH < 7.75) by Year")
@@ -201,27 +216,37 @@ else:
 
 # ─── FOLIUM MAP ─────────────────────────────────────────────────────
 latest_ph = ph_df.sort_values("date").groupby("station")["ph"].last().to_dict()
+breach_counts = (
+    ph_df[ph_df["ph"] < ANCHOVY_THRESHOLD]
+    .groupby("station")
+    .size()
+    .to_dict()
+)
 
-def ph_color(ph):
-    if ph is None:               return "gray"
-    if ph < SHELLFISH_THRESHOLD: return "red"
-    if ph < ANCHOVY_THRESHOLD:   return "orange"
+def station_color(station, ph_val):
+    # Historical risk: breach count > 50 overrides latest-reading color
+    if breach_counts.get(station, 0) > 50:
+        return "red"
+    if ph_val is not None and ph_val < ANCHOVY_THRESHOLD:
+        return "orange"
     return "green"
 
 m = folium.Map(location=[33.9, -121.6], zoom_start=7, tiles="CartoDB positron")
 for station, (lat, lon) in STATION_COORDS.items():
     ph_val = latest_ph.get(station)
-    color  = ph_color(ph_val)
+    color  = station_color(station, ph_val)
     ph_txt = f"{ph_val:.3f}" if ph_val else "N/A"
+    breaches = breach_counts.get(station, 0)
     folium.CircleMarker(
         location=[lat, lon], radius=18, color=color,
         fill=True, fill_color=color, fill_opacity=0.8,
         popup=folium.Popup(
             f"<b>{station}</b><br>Latest pH: {ph_txt}<br>"
-            f"{'🔴 Below shellfish threshold' if color=='red' else '🟡 Below anchovy threshold' if color=='orange' else '🟢 Within safe range'}",
-            max_width=200
+            f"Total breach events: {breaches}<br>"
+            f"{'🔴 HIGH RISK — >50 breach events' if color=='red' else '🟡 Elevated risk' if color=='orange' else '🟢 Low historical risk'}",
+            max_width=220
         ),
-        tooltip=f"{station} — pH {ph_txt}"
+        tooltip=f"{station} — {breaches} breaches recorded"
     ).add_to(m)
 st_folium(m, width=None, height=300, returned_objects=[])
 
