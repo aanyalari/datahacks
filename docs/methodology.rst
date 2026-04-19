@@ -19,7 +19,7 @@ Exploratory analysis emphasizes:
 - covariance among physical and biogeochemical channels,
 - diurnal and seasonal structure.
 
-The Marimo notebook (``notebooks/cce_explore.py``) is the “lab notebook” surface; Streamlit is the judge-facing interactive demo.
+The Marimo notebook (``notebooks/cce_explore.py``) is the “lab notebook” surface; Streamlit is the interactive demo.
 
 Machine learning layer
 ----------------------

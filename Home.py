@@ -1,5 +1,5 @@
 """
-CCE Mooring Lab — Mission Control (main entry).
+MooringMind — Mission Control (main entry).
 
   pip install -e .
   streamlit run Home.py
@@ -32,19 +32,12 @@ from cce_hack.mission_ui import (
 )
 from cce_hack.streamlit_shell import inject_theme_css, page_config, render_global_sidebar
 
-page_config(title="CCE Mooring Lab")
+page_config(title="MooringMind")
 inject_theme_css()
 
 df = render_global_sidebar()
 
-st.title("Mooring health — Mission Control")
-st.markdown(
-    """
-**At-a-glance mooring QA** — Map pins mark fixed CCE reference sites. The six tiles compare the **latest**
-reading to a **30-day trailing mean**. The multi-sensor chart rescales different units to one axis so you
-compare **timing** (co-movement), not absolute chemistry — use **Analytics** for real units.
-"""
-)
+st.title("MooringMind — Mission Control")
 
 render_mooring_map_pydeck()
 st.caption(insight_mooring_window(df))

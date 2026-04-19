@@ -1,4 +1,4 @@
-"""Deterministic 'so what' bullets for judges (no LLM)."""
+"""Deterministic 'so what' bullets for demos (no LLM)."""
 
 from __future__ import annotations
 
@@ -111,8 +111,6 @@ def key_findings_analytics(df: pd.DataFrame) -> list[str]:
                 f"Ω_aragonite moved by **{delta:+.2f}** from the early-window mean to the latest estimate — small shifts matter near saturation = 1."
             )
 
-    bullets.append(
-        "**Hovmöller / radar** compress time: use them when you want judges to see seasonality or depth structure without reading every line plot."
-    )
+    bullets.append("**Hovmöller / radar** compress time: they make seasonality and depth structure visible without reading every line plot.")
 
     return bullets[:5]

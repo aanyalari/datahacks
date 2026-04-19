@@ -1,4 +1,4 @@
-"""Hackathon **judge-facing** briefing: filled from computed facts only (no LLM)."""
+"""One-page briefing: filled from computed facts only (no LLM)."""
 
 from __future__ import annotations
 
@@ -7,12 +7,12 @@ from typing import Any
 
 def build_judge_brief_markdown(pkg: dict[str, Any]) -> str:
     """
-    One-page narrative for **judges**: problem → what the app did → evidence → caveats.
+    One-page narrative: problem → what the app did → evidence → caveats.
 
     Every quantitative claim is derived from ``build_context_package`` output.
     """
     if "error" in pkg:
-        return f"## Judge briefing\n\n**Cannot build briefing:** {pkg['error']}"
+        return f"## Briefing\n\n**Cannot build briefing:** {pkg['error']}"
 
     mooring = pkg.get("mooring_id")
     rows = int(pkg.get("rows") or 0)
@@ -32,7 +32,7 @@ def build_judge_brief_markdown(pkg: dict[str, Any]) -> str:
     median_fill = sorted(p for _, p in fills)[len(fills) // 2] if fills else 0.0
 
     lines: list[str] = []
-    lines.append("## Hackathon judge briefing")
+    lines.append("## Briefing")
     lines.append("")
     lines.append("### 1) Real use case (why this exists)")
     lines.append(
@@ -42,7 +42,7 @@ def build_judge_brief_markdown(pkg: dict[str, Any]) -> str:
         "This app automates that first-line **data trust** check and pairs it with exploratory plots and optional wording polish."
     )
     lines.append("")
-    lines.append("### 2) What you should evaluate in ~60 seconds")
+    lines.append("### 2) What to look for in ~60 seconds")
     lines.append(
         "- **Speed & clarity:** Does the briefing below make the file’s strengths/weaknesses obvious without domain jargon?\n"
         "- **Honesty:** Numbers come straight from the CSV summary — nothing is “live from the ocean.”\n"
@@ -98,7 +98,7 @@ def build_judge_brief_markdown(pkg: dict[str, Any]) -> str:
     _block_md("5) Physical ocean snapshot (from file)", pkg.get("physical_summary") or {})
     _block_md("6) Biogeochemistry snapshot (from file)", pkg.get("biogeochem_summary") or {})
 
-    lines.append("### 7) Suggested live demo path (for judges)")
+    lines.append("### 7) Suggested live demo path")
     lines.append(
         "1. Skim this briefing (you are here).\n"
         "2. Open **Data quality** if someone asks *prove it* — same facts as a table.\n"

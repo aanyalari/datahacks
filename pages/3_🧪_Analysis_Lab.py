@@ -27,7 +27,7 @@ df = render_global_sidebar()
 
 st.title("Analysis lab")
 st.caption(
-    "**Same CSV as Analytics** — Analytics is the judge-facing story; this page is optional **one-at-a-time** tools "
+    "**Same CSV as Analytics** — Analytics is the main story; this page is optional **one-at-a-time** tools "
     "(coupling, spectra, UMAP, naive extrapolation, etc.). Pick one module so the demo stays fast."
 )
 st.caption(insight_mooring_window(df))

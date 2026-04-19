@@ -85,7 +85,7 @@ def inject_theme_css() -> None:
     )
 
 
-def page_config(*, title: str = "CCE Mooring Lab") -> None:
+def page_config(*, title: str = "MooringMind") -> None:
     st.set_page_config(page_title=title, layout="wide", initial_sidebar_state="expanded")
 
 
@@ -152,6 +152,10 @@ def render_global_sidebar() -> pd.DataFrame:
         st.session_state.cce_time_window = "all"
     if "cce_chart_theme" not in st.session_state:
         st.session_state.cce_chart_theme = "light"
+
+    st.sidebar.markdown("## MooringMind")
+    st.sidebar.caption("Mission Control • Analytics • Quality • Predictions")
+    st.sidebar.divider()
 
     st.sidebar.header("Data")
     up = st.sidebar.file_uploader(

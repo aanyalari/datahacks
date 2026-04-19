@@ -247,7 +247,7 @@ def polish_judge_brief(
     timeout_s: int = 60,
 ) -> str:
     """
-    **One** short Ollama call: tighten judge-facing prose only.
+    **One** short Ollama call: tighten demo-facing prose only.
 
     The deterministic ``brief_markdown`` is already complete; this is optional flair for demos.
     Strictly forbid changing numbers so RAG / multi-agent frameworks are unnecessary here.
@@ -260,7 +260,7 @@ def polish_judge_brief(
         {
             "role": "system",
             "content": (
-                "You are an editor for a hackathon judge. Rewrite the user's markdown to be tighter and clearer. "
+                "You are an editor. Rewrite the user's markdown to be tighter and clearer. "
                 "Rules: Do NOT change any numbers, dates, percentages, mooring ids, inequalities, or column names "
                 "inside backticks. Do NOT add new facts. Keep headings roughly similar. "
                 "Prefer short bullets. Max ~220 words of new text density."

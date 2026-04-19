@@ -88,7 +88,7 @@ def pick_chl_column(df: pd.DataFrame) -> str | None:
 
 def aragonite_habitat_sentence(df: pd.DataFrame) -> str:
     """
-    One auto-generated sentence for judges (uses PyCO2SYS when pH+T+S exist; else heuristic).
+    One auto-generated habitat sentence (uses PyCO2SYS when pH+T+S exist; else heuristic).
     """
     ph_c = pick_best_column(df, "ph")
     t_c = pick_best_column(df, "sst")

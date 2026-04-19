@@ -174,7 +174,7 @@ st.markdown(
 
 # --- AI bridge ---
 if effective_llm_api_key():
-    if st.button("Ask AI to connect CalCOFI + moorings for judges"):
+    if st.button("Ask AI to connect CalCOFI + moorings"):
         moor_t0 = str(moor["time"].min())[:10] if len(moor) else "n/a"
         moor_t1 = str(moor["time"].max())[:10] if len(moor) else "n/a"
         mid = moor["mooring_id"] if "mooring_id" in moor.columns else moor.get("station", pd.Series(dtype=str))

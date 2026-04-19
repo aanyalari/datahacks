@@ -10,7 +10,7 @@ DEFAULT_MOORING = "CCE2"
 DEFAULT_HORIZON_HOURS = 24
 LAG_HOURS = (1, 6, 12, 24, 48, 72)
 
-# Reference mooring positions (judge map — hardcoded; independent of CSV lat/lon).
+# Reference mooring positions (fixed reference map — hardcoded; independent of CSV lat/lon).
 MOORING_SITES: dict[str, dict[str, float]] = {
     "CCE1": {"latitude": 33.45, "longitude": -122.8},
     "CCE2": {"latitude": 34.3, "longitude": -120.7},

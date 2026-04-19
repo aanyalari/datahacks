@@ -102,7 +102,7 @@ def interpret_top_anomalies_prompt(anomalies_df: pd.DataFrame, *, context_lines:
     body = anomalies_df.to_string(index=False) if anomalies_df is not None and not anomalies_df.empty else "(no rows)"
     return textwrap.dedent(
         f"""
-        You are an oceanographer explaining mooring telemetry to hackathon judges.
+        You are an oceanographer explaining mooring telemetry to a general audience.
 
         Here are the top multivariate anomalies flagged by an Isolation Forest (most negative score = strangest point in feature space).
         Use ONLY the numbers shown; do not invent timestamps or values.
@@ -122,7 +122,7 @@ def interpret_top_anomalies_prompt(anomalies_df: pd.DataFrame, *, context_lines:
 def explain_single_anomaly_prompt(*, event_markdown: str, feature_context: str) -> str:
     return textwrap.dedent(
         f"""
-        You are an oceanographer coaching hackathon judges.
+        You are an oceanographer explaining mooring telemetry to a general audience.
 
         **Event snapshot (do not invent numbers):**
         {event_markdown}
@@ -203,6 +203,6 @@ def calcofi_mooring_prompt(mooring_summary: str, larvae_summary: str, zoo_summar
         In 4 short sentences: (1) how to interpret CalCOFI vs mooring time coverage,
         (2) one way they complement each other for ecosystem stress narratives,
         (3) one caution about comparing them directly,
-        (4) one judge-friendly takeaway for a hackathon demo.
+        (4) one crisp takeaway for a live demo.
         """
     ).strip()
