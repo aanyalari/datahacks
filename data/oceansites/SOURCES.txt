@@ -1,0 +1,21 @@
+OceanSITES QC NetCDF (NDBC THREDDS fileServer) — downloaded for local use.
+
+Files in this folder (NetCDF binaries are gitignored):
+  OS_CCE1_14_D_CTD.nc
+  OS_CCE1_14_D_Meteorology.nc
+  OS_CCE2_17_D_CTD.nc
+  OS_CCE2_17_D_Meteorology.nc
+
+Base URL pattern:
+  https://dods.ndbc.noaa.gov/thredds/fileServer/oceansites/DATA/{CCE1|CCE2}/<filename>.nc
+
+Browse catalogs:
+  https://dods.ndbc.noaa.gov/thredds/catalog/oceansites/DATA/CCE1/catalog.html
+  https://dods.ndbc.noaa.gov/thredds/catalog/oceansites/DATA/CCE2/catalog.html
+
+Open in Python:
+  pip install xarray netCDF4
+  import xarray as xr
+  ds = xr.open_dataset("data/oceansites/OS_CCE2_17_D_CTD.nc")
+
+Deployment numbers (14, 17, …) map to mooring deployment IDs on https://mooring.ucsd.edu/cce/

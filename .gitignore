@@ -1,0 +1,25 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+data/raw/*
+!data/raw/.gitkeep
+# OceanSITES CSV extracts (large)
+data/raw/ph/
+data/raw/temperature_salinity/
+data/raw/nitrate/
+data/raw/chlorophyll/
+data/raw/oxygen/
+data/processed/*
+!data/processed/.gitkeep
+data/oceansites/*.nc
+.streamlit/secrets.toml
+.env
+.env.*
+docs/_build/
+*.egg-info/
+dist/
+build/
