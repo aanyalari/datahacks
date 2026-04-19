@@ -18,9 +18,7 @@ from cce_hack.anomaly_iso import (
     build_anomaly_rank_table,
     feature_z_scores_at_row,
     isolation_forest_anomalies,
-    top_anomaly_events,
 )
-from cce_hack.claude_narrative import explain_single_anomaly_claude, interpret_top_anomalies_claude
 from cce_hack.config import DEFAULT_HORIZON_HOURS, LAG_HOURS
 from cce_hack.features import add_calendar_features, add_lags
 from cce_hack.pipeline import default_lag_columns, run_forecast_experiment
@@ -28,8 +26,6 @@ from cce_hack.plot_theme import PLOTLY_BASE, apply_plotly
 from cce_hack.soft_sensor import candidate_soft_sensor_targets, train_soft_sensor
 from cce_hack.streamlit_shell import (
     CHART_H_FULL,
-    effective_anthropic_key,
-    effective_anthropic_model,
     friendly_column_label_plain,
     inject_theme_css,
     numeric_series_cols,
@@ -452,21 +448,25 @@ with tab_anom:
 
             rank10 = build_anomaly_rank_table(df, out, feats, n=10)
             if not rank10.empty:
+                rank_display = rank10.drop(columns=[c for c in ("_col",) if c in rank10.columns])
                 st.markdown("**Top 10 most unusual moments**")
-                st.dataframe(rank10, use_container_width=True, hide_index=True, height=320)
+                st.dataframe(rank_display, use_container_width=True, hide_index=True, height=320)
                 st.caption(
-                    "**Variable** is the sensor that was farthest from normal at that moment; "
-                    "**Z-score** is how many standard deviations away from its long-term average it was."
+                    "**Sensor (what moved most)** is the sensor that was farthest from normal at that moment; "
+                    "the **Z** value is how many standard deviations away from its long-term average it was."
                 )
 
                 with st.expander("Why was a specific moment flagged?", expanded=False):
                     pick_i = st.selectbox(
                         "Pick a row",
                         list(range(len(rank10))),
-                        format_func=lambda i: f"{rank10.iloc[i]['Date']} — {_label(rank10.iloc[i]['Variable'])} (z={rank10.iloc[i]['Z-score']})",
+                        format_func=lambda i: (
+                            f"{rank10.iloc[i]['When (UTC)']} — {rank10.iloc[i]['Sensor (what moved most)']} "
+                            f"(z={rank10.iloc[i]['Z vs whole mooring file']})"
+                        ),
                         key="driver_pick",
                     )
-                    t_str = rank10.iloc[pick_i]["Date"]
+                    t_str = rank10.iloc[pick_i]["When (UTC)"]
                     t_match = pd.to_datetime(t_str, utc=True, errors="coerce")
                     row_series = None
                     if pd.notna(t_match):
@@ -532,42 +532,6 @@ with tab_anom:
                             "which is what made the combination stand out."
                         )
                         st.caption("Dotted lines mark the ±2σ 'still normal' zone. Bars beyond it are the ones pushing this moment into unusual territory.")
-
-                with st.expander("Plain-English summary (optional · needs Anthropic API key)", expanded=False):
-                    col_a, col_b = st.columns(2)
-                    with col_a:
-                        if st.button("Summarize the top anomalies", key="btn_claude_top"):
-                            top3 = top_anomaly_events(out, n=3)
-                            with st.spinner("Asking Claude…"):
-                                txt = interpret_top_anomalies_claude(
-                                    effective_anthropic_key(),
-                                    effective_anthropic_model(),
-                                    top3,
-                                    context_lines=f"Features used: {', '.join(feats)}.",
-                                )
-                            st.session_state["claude_top"] = txt
-                        if st.session_state.get("claude_top"):
-                            st.markdown(st.session_state["claude_top"])
-                    with col_b:
-                        idx = st.selectbox(
-                            "Or explain one row",
-                            list(range(len(rank10))),
-                            format_func=lambda i: f"{rank10.iloc[i]['Date']} — {_label(rank10.iloc[i]['Variable'])}",
-                            key="claude_row",
-                        )
-                        if st.button("Explain this one", key="btn_claude_one"):
-                            row = rank10.iloc[idx]
-                            ev = pd.DataFrame([row]).to_markdown(index=False)
-                            with st.spinner("Asking Claude…"):
-                                txt2 = explain_single_anomaly_claude(
-                                    effective_anthropic_key(),
-                                    effective_anthropic_model(),
-                                    event_markdown=ev,
-                                    feature_context=", ".join(feats),
-                                )
-                            st.session_state["claude_one"] = txt2
-                        if st.session_state.get("claude_one"):
-                            st.markdown(st.session_state["claude_one"])
 
 # =============================================================================
 # 3) Soft sensor — reconstruct one channel from the others
